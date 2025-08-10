@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import {generateTokens} from "../lib/utils.js"
+import cloudinary from "../lib/cloudinary.js"
 
 export const signup = async (req,res)=>{
     const {fullName, email, password} = req.body;
@@ -111,5 +112,25 @@ export const logout = (req,res)=>{
 }
 
 export const updateProfile = async(req,res) =>{
-    
+    try{
+        const {profilePic} = req.body;
+        const userId = req.user._id;
+
+        if(!profilePic){
+            return res.status(400).json({
+                message : "Profile Pic is required"
+            });
+        }
+
+        const uploadResponse = await cloudinary.uploader.upload(profilePic);
+        const updatedUser= await User.findByIdAndUpdate(userId, {profilePic : uploadResponse.secure_url}, {new:true}) //By default, findOneAndUpdate() returns the document as it was before update was applied. If you set new: true, findOneAndUpdate() will instead give you the object after update was applied.
+
+        res.status(200).json(updatedUser);
+
+    }catch(err){
+        console.log("Error in the logout controller", err.message);
+        res.status(500).json({
+            message : "Internal Server Error"
+        })
+    }
 }

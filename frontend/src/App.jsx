@@ -1,23 +1,40 @@
-import React from "react";
+import React, { useEffect } from "react";
+import Navbar from "./components/Navbar";
+import { Route, Routes } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import SettingsPage from "./pages/SettingsPage";
+import SignUpPage from "./pages/SignUpPage";
+import LoginPage from "./pages/LoginPage";
+import ProfilePage from "./pages/ProfilePage";
+import { useAuthStore } from "./store/useAuthStore";
+import {Loader} from "lucide-react";
 
 const App = () => {
-  return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold underline text-blue-600">
-        Hello Connect.io!
-      </h1>
 
-      <br />
-      <div className="flex gap-4">
-      <button className="btn btn-neutral">Neutral</button>
-      <button className="btn btn-primary">Primary</button>
-      <button className="btn btn-secondary">Secondary</button>
-      <button className="btn btn-accent">Accent</button>
-      <button className="btn btn-info">Info</button>
-      <button className="btn btn-success">Success</button>
-      <button className="btn btn-warning">Warning</button>
-      <button className="btn btn-error">Error</button>
-      </div>
+  const {authUser, checkAuth, isCheckingAuth} = useAuthStore();
+
+  useEffect(()=>{
+    checkAuth();
+  },[checkAuth])
+
+  console.log(authUser);
+
+  if(isCheckingAuth && !authUser) return (
+    <div className="flex items-center justify-center h-screen">
+      <Loader className="size-10 animate-spin"/>
+    </div>
+  )
+
+  return (
+    <div>
+      <Navbar/>
+      <Routes>
+        <Route path="/" element={authUser ? <HomePage/> : <Navigate to="/login"/>} />
+        <Route path="/signup" element={!authUser ? <SignUpPage/> : <Navigate to="/"/>} />
+        <Route path="/login" element={!authUser ? <LoginPage/> : <Navigate to="/"/>} />
+        <Route path="/settings" element={<SettingsPage/>} />
+        <Route path="/profile" element={authUser ? <ProfilePage/> : <Navigate to="/login"/>} />
+      </Routes>
     </div>
   );
 };
